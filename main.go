@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -64,6 +65,13 @@ func (s *SheetClient) BatchUpdate() error {
 	return err
 }
 
+func (s *SheetClient) Update(range_ string, values [][]interface{}) error {
+	_, err := s.srv.Spreadsheets.Values.Update(s.spreadsheetID, range_, &sheets.ValueRange{
+		Values: values,
+	}).ValueInputOption("RAW").Do()
+	return err
+}
+
 func main() {
 	client, err := NewSheetClient(context.Background(), os.Getenv("SPREAD_SHEET_ID"))
 	if err != nil {
@@ -73,5 +81,14 @@ func main() {
 	err = client.BatchUpdate()
 	if err != nil {
 		log.Fatalf("client.BatchUpdate: %s", err)
+	}
+
+	err = client.Update(fmt.Sprintf("%s!C2", os.Getenv("SHEET_NAME")), [][]interface{}{
+		{
+			true,
+		},
+	})
+	if err != nil {
+		log.Fatalf("client.Update: %s", err)
 	}
 }
